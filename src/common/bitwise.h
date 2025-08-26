@@ -1,28 +1,29 @@
 #pragma once
 
+#include <bitset>
 #include <cstdint>
 
 #include "types.h"
 
 namespace Bitwise {
     // Checks if half carry occurred in 8-bit addition
-    inline bool checkHalfCarryAdd(u8 operand1, u8 operand2) {
-        return ((((operand1 & 0xF) + (operand2 & 0xF)) & 0x10) == 0x10);
+    inline bool checkHalfCarryAdd(u8 operand1, u8 operand2, u8 carry = 0) {
+        return ((operand1 & 0xF) + (operand2 & 0xF) + (carry & 0b1)) > 0xF;
     }
 
     // Checks if half carry occurred in 16-bit addition
-    inline bool checkHalfCarryAdd(u16 operand1, u16 operand2) {
-        return ((((operand1 & 0xFFF) + (operand2 & 0xFFF)) & 0x1000) == 0x1000);
+    inline bool checkHalfCarryAdd(u16 operand1, u16 operand2, u8 carry = 0) {
+        return ((operand1 & 0xFFF) + (operand2 & 0xFFF) + (carry & 0b1)) > 0xFFF;
     }
 
     // Checks if half carry occurred in 8-bit subtraction
-    inline bool checkHalfCarrySub(u8 operand1, u8 operand2) {
-        return ((((operand1 & 0xF) - (operand2 & 0xF)) & 0x10) == 0x10);
+    inline bool checkHalfCarrySub(u8 operand1, u8 operand2, u8 carry = 0) {
+        return (operand1 & 0xF) < ((operand2 & 0xF) + (carry & 0b1));
     }
 
     // Checks if half carry occurred in 16-bit subtraction
-    inline bool checkHalfCarrySub(u16 operand1, u16 operand2) {
-        return ((((operand1 & 0xFFF) - (operand2 & 0xFFF)) & 0x1000) == 0x1000);
+    inline bool checkHalfCarrySub(u16 operand1, u16 operand2, u8 carry = 0) {
+        return (operand1 & 0xFFF) < ((operand2 & 0xFFF) + (carry & 0b1));
     }
 
     // Gets n-th bit from an 8-bit value
@@ -51,7 +52,18 @@ namespace Bitwise {
     }
 
     // Joins two bytes together to make a 16-bit value
-    inline uint16_t concatBytes(u8 low, u8 hi) {
+    inline u16 concatBytes(u8 low, u8 hi) {
         return (hi << 8) | low;
+    }
+
+    // Checks the sign of a byte. True if 7th bit set, false if not
+    inline bool isNegative(u8 value) {
+        return getBitInByte(value, 7);
+    }
+
+    // Checks parity of a byte. True if even, false if odd
+    inline bool checkParity(u8 value) {
+        std::bitset<8> bits(value);
+        return bits.count() % 2 == 0;
     }
 }
