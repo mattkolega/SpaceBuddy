@@ -1,5 +1,6 @@
 add_library(core STATIC
     cpu.cpp
+    mmu.h
 )
 
 target_link_libraries(core
