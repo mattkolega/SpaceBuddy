@@ -349,22 +349,22 @@ void CPU::pchl() {
 }
 
 // Jumps to address
-void CPU::jmp(u16 address, bool condition) {
-    if (condition) pc = address;
+void CPU::jmp(bool condition = true) {
+    if (condition) pc = Bitwise::concatBytes(mmu.memRead(pc), mmu.memRead(pc+1));
 }
 
 // Call subroutine instructions
 
 // Pushes PC to stack and jumps to address
-void CPU::call(u16 address, bool condition) {
+void CPU::call(bool condition = true) {
     if (condition) {
         pushToStack(pc);
-        pc = address;
+        pc = Bitwise::concatBytes(mmu.memRead(pc), mmu.memRead(pc+1));
     }
 }
 
 // Pops PC from stack
-void CPU::ret(u16 address, bool condition) {
+void CPU::ret(bool condition = true) {
     if (condition) pc = popFromStack();
 }
 

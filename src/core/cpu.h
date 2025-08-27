@@ -134,11 +134,11 @@ private:
 
     // Jump instructions
     void pchl();
-    void jmp(u16 address, bool condition);
+    void jmp(bool condition);
 
     // Call subroutine instructions
-    void call(u16 address, bool condition);
-    void ret(u16 address, bool condition);
+    void call(bool condition);
+    void ret(bool condition);
     void rst(u8 data);
 
     // Interrupt instructions
@@ -149,5 +149,5 @@ private:
     void in();
     void out();
 
-    void halt();
+    void hlt();
 };
