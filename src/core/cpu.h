@@ -5,7 +5,7 @@
 #include <common/bitwise.h>
 #include <common/types.h>
 
-#include "mmu.h"
+class Bus;
 
 enum class FlagBits : u8 {
     C = 0, // Carry
@@ -35,11 +35,12 @@ struct opcodeInfo {
 class CPU {
 public:
     CPU() = delete;
+    CPU(Bus& bus);
 
     // Executes a single opcode.
     void step();
 private:
-    MMU &mmu;
+    Bus& bus;
 
     RegisterPair psw {};
     RegisterPair bc  {};
@@ -57,7 +58,8 @@ private:
     u8& e = de.lo;
     u8& h = hl.hi;
     u8& l = hl.lo;
-    u8& m = mmu.get(hl.get());
+
+    u8& m();
 
     bool interruptsEnabled { false };
 
