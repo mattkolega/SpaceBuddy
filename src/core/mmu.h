@@ -5,10 +5,13 @@
 #include <common/types.h>
 
 class MMU {
-private:
-    std::array<u8, 1024 * 64> memory {};
 public:
-    u8 memRead(u16 address) const { return memory[address]; }
-    u8& get(u16 address) { return memory[address]; }
-    void memWrite(u16 address, u8 value) { memory[address] = value; }
+    u8 read(u16 address) const;
+    void write(u16 address, u8 value);
+    u8& getRef(u16 address);
+    const std::array<u8, 1024 * 7>& getFrameBuffer() const;
+private:
+    std::array<u8, 1024 * 8> rom {};
+    std::array<u8, 1024> ram {};
+    std::array<u8, 1024 * 7> vram {};
 };
