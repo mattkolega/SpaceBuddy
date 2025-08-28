@@ -59,6 +59,8 @@ private:
     u8& l = hl.lo;
     u8& m = mmu.get(hl.get());
 
+    bool interruptsEnabled { false };
+
     void pushToStack(u16 value);
     u16 popFromStack();
 

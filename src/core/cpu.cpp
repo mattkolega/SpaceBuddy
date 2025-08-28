@@ -374,6 +374,18 @@ void CPU::rst(u8 data) {
     pc = data * 8;
 }
 
+// Interrupt instructions
+
+// Enables interrupts
+void CPU::ei() {
+    interruptsEnabled = true;
+}
+
+// Disables interrupts
+void CPU::di() {
+    interruptsEnabled = false;
+}
+
 void CPU::execute() {
     u8 opcode = mmu.memRead(pc);
     pc++;
