@@ -63,6 +63,7 @@ private:
 
     size_t cycleDelay { 0 };
     bool interruptsEnabled { false };
+    bool isHalted { false };
 
     void pushToStack(u16 value);
     u16 popFromStack();
@@ -151,8 +152,9 @@ private:
     void di();
 
     // Input/output instructions
-    void in();
-    void out();
+    void in(u8 portNum);
+    void out(u8 portNum);
 
+    // Halts CPU
     void hlt();
 };

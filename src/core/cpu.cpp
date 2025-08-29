@@ -290,7 +290,9 @@ u8& CPU::m() {
 }
 
 void CPU::step() {
-    if ( cycleDelay == 0 ) {
+    if (cycleDelay == 0) {
+        if (isHalted) return;
+
         u8 opcode = bus.memRead(pc);
         pc++;
 
@@ -682,6 +684,23 @@ void CPU::di() {
     interruptsEnabled = false;
 }
 
+// Input/output instructions
+
+// Gets data from IN port
+void CPU::in(u8 portNum) {
+    a = bus.in(portNum);
+}
+
+// Writes data to OUT port
+void CPU::out(u8 portNum) {
+    bus.out(portNum, a);
+}
+
+// Halts CPU
+void CPU::hlt() {
+    isHalted = true;
+}
+
 void CPU::execute(u8 opcode) {
     switch (opcode) {
         case 0x00: break;
@@ -908,7 +927,7 @@ void CPU::execute(u8 opcode) {
         case 0xD0: ret(getCarry() == 0); break;
         case 0xD1: pop(de); break;
         case 0xD2: jmp(getCarry() == 0); break;
-        case 0xD3: out(); break;
+        case 0xD3: out(bus.memRead(pc)); pc++; break;
         case 0xD4: call(getCarry() == 0); break;
         case 0xD5: push(de); break;
         case 0xD6: sub(bus.memRead(pc)); pc++; break;
@@ -916,7 +935,7 @@ void CPU::execute(u8 opcode) {
         case 0xD8: ret(); break;
         case 0xD9: ret(getCarry() == 1); break;
         case 0xDA: jmp(getCarry() == 1); break;
-        case 0xDB: in(); break;
+        case 0xDB: in(bus.memRead(pc)); pc++; break;
         case 0xDC: call(getCarry() == 1); break;
         case 0xDD: call(); break;
         case 0xDE: sbb(bus.memRead(pc)); pc++; break;
