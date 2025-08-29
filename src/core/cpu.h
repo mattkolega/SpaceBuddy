@@ -27,7 +27,7 @@ public:
     void set(u16 value);
 };
 
-struct opcodeInfo {
+struct OpcodeInfo {
     std::string_view mnemonic;
     u8 cycles;
 };
@@ -61,6 +61,7 @@ private:
 
     u8& m();
 
+    size_t cycleDelay { 0 };
     bool interruptsEnabled { false };
 
     void pushToStack(u16 value);
@@ -77,7 +78,7 @@ private:
     u8 getSign() const;
     void setSign(bool value);
 
-    void execute();
+    void execute(u8 opcode);
 
     /* INSTRUCTIONS */
 

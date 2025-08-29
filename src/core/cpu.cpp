@@ -8,11 +8,299 @@
 u16 RegisterPair::get() const { return Bitwise::concatBytes(lo, hi); }
 void RegisterPair::set(u16 newVal) { lo = newVal & 0xFF; hi = newVal >> 8; }
 
+static constexpr std::array<OpcodeInfo, 256> opcodeInfoTable {{
+    {"NOP", 4},          // 0x00
+    {"LXI BC, d16", 10}, // 0x01
+    {"STAX BC", 7},      // 0x02
+    {"INX BC", 5},       // 0x03
+    {"INR B", 5},        // 0x04
+    {"DCR B", 5},        // 0x05
+    {"MVI B, d8", 7},    // 0x06
+    {"RLC", 4},          // 0x07
+    {"NOP", 4},          // 0x08
+    {"DAD BC", 10},      // 0x09
+    {"LDAX BC", 7},      // 0x0A
+    {"DCX BC", 5},       // 0x0B
+    {"INR C", 5},        // 0x0C
+    {"DCR C", 5},        // 0x0D
+    {"MVI C, d8", 7},    // 0x0E
+    {"RRC", 4},          // 0x0F
+
+    {"NOP", 4},          // 0x10
+    {"LXI DE, d16", 10}, // 0x11
+    {"STAX DE", 7},      // 0x12
+    {"INX DE", 5},       // 0x13
+    {"INR D", 5},        // 0x14
+    {"DCR D", 5},        // 0x15
+    {"MVI D, d8", 7},    // 0x16
+    {"RAL", 4},          // 0x17
+    {"NOP", 4},          // 0x18
+    {"DAD DE", 10},      // 0x19
+    {"LDAX DE", 7},      // 0x1A
+    {"DCX DE", 5},       // 0x1B
+    {"INR E", 5},        // 0x1C
+    {"DCR E", 5},        // 0x1D
+    {"MVI E, d8", 7},    // 0x1E
+    {"RAR", 4},          // 0x1F
+
+    {"NOP", 4},          // 0x20
+    {"LXI HL, d16", 10}, // 0x21
+    {"SHLD a16", 16},    // 0x22
+    {"INX HL", 5},       // 0x23
+    {"INR H", 5},        // 0x24
+    {"DCR H", 5},        // 0x25
+    {"MVI H, d8", 7},    // 0x26
+    {"DAA", 4},          // 0x27
+    {"NOP", 4},          // 0x28
+    {"DAD HL", 10},      // 0x29
+    {"LHLD a16", 16},    // 0x2A
+    {"DCX HL", 5},       // 0x2B
+    {"INR L", 5},        // 0x2C
+    {"DCR L", 5},        // 0x2D
+    {"MVI L, d8", 7},    // 0x2E
+    {"CMA", 4},          // 0x2F
+
+    {"NOP", 4},          // 0x30
+    {"LXI SP, d16", 10}, // 0x31
+    {"STA a16", 13},     // 0x32
+    {"INX SP", 5},       // 0x33
+    {"INR M", 10},       // 0x34
+    {"DCR M", 10},       // 0x35
+    {"MVI M, d8", 10},   // 0x36
+    {"STC", 4},          // 0x37
+    {"NOP", 4},          // 0x38
+    {"DAD SP", 10},      // 0x39
+    {"LDA a16", 13},     // 0x3A
+    {"DCX SP", 5},       // 0x3B
+    {"INR A", 5},        // 0x3C
+    {"DCR A", 5},        // 0x3D
+    {"MVI A, d8", 7},    // 0x3E
+    {"CMC", 4},          // 0x3F
+
+    {"MOV B,B", 5},      // 0x40
+    {"MOV B,C", 5},      // 0x41
+    {"MOV B,D", 5},      // 0x42
+    {"MOV B,E", 5},      // 0x43
+    {"MOV B,H", 5},      // 0x44
+    {"MOV B,L", 5},      // 0x45
+    {"MOV B,M", 7},      // 0x46
+    {"MOV B,A", 5},      // 0x47
+    {"MOV C,B", 5},      // 0x48
+    {"MOV C,C", 5},      // 0x49
+    {"MOV C,D", 5},      // 0x4A
+    {"MOV C,E", 5},      // 0x4B
+    {"MOV C,H", 5},      // 0x4C
+    {"MOV C,L", 5},      // 0x4D
+    {"MOV C,M", 7},      // 0x4E
+    {"MOV C,A", 5},      // 0x4F
+
+    {"MOV D,B", 5},      // 0x50
+    {"MOV D,C", 5},      // 0x51
+    {"MOV D,D", 5},      // 0x52
+    {"MOV D,E", 5},      // 0x53
+    {"MOV D,H", 5},      // 0x54
+    {"MOV D,L", 5},      // 0x55
+    {"MOV D,M", 7},      // 0x56
+    {"MOV D,A", 5},      // 0x57
+    {"MOV E,B", 5},      // 0x58
+    {"MOV E,C", 5},      // 0x59
+    {"MOV E,D", 5},      // 0x5A
+    {"MOV E,E", 5},      // 0x5B
+    {"MOV E,H", 5},      // 0x5C
+    {"MOV E,L", 5},      // 0x5D
+    {"MOV E,M", 7},      // 0x5E
+    {"MOV E,A", 5},      // 0x5F
+
+    {"MOV H,B", 5},      // 0x60
+    {"MOV H,C", 5},      // 0x61
+    {"MOV H,D", 5},      // 0x62
+    {"MOV H,E", 5},      // 0x63
+    {"MOV H,H", 5},      // 0x64
+    {"MOV H,L", 5},      // 0x65
+    {"MOV H,M", 7},      // 0x66
+    {"MOV H,A", 5},      // 0x67
+    {"MOV L,B", 5},      // 0x68
+    {"MOV L,C", 5},      // 0x69
+    {"MOV L,D", 5},      // 0x6A
+    {"MOV L,E", 5},      // 0x6B
+    {"MOV L,H", 5},      // 0x6C
+    {"MOV L,L", 5},      // 0x6D
+    {"MOV L,M", 7},      // 0x6E
+    {"MOV L,A", 5},      // 0x6F
+
+    {"MOV M,B", 7},      // 0x70
+    {"MOV M,C", 7},      // 0x71
+    {"MOV M,D", 7},      // 0x72
+    {"MOV M,E", 7},      // 0x73
+    {"MOV M,H", 7},      // 0x74
+    {"MOV M,L", 7},      // 0x75
+    {"HLT", 7},          // 0x76
+    {"MOV M,A", 7},      // 0x77
+    {"MOV A,B", 5},      // 0x78
+    {"MOV A,C", 5},      // 0x79
+    {"MOV A,D", 5},      // 0x7A
+    {"MOV A,E", 5},      // 0x7B
+    {"MOV A,H", 5},      // 0x7C
+    {"MOV A,L", 5},      // 0x7D
+    {"MOV A,M", 7},      // 0x7E
+    {"MOV A,A", 5},      // 0x7F
+
+    {"ADD B", 4},        // 0x80
+    {"ADD C", 4},        // 0x81
+    {"ADD D", 4},        // 0x82
+    {"ADD E", 4},        // 0x83
+    {"ADD H", 4},        // 0x84
+    {"ADD L", 4},        // 0x85
+    {"ADD M", 7},        // 0x86
+    {"ADD A", 4},        // 0x87
+    {"ADC B", 4},        // 0x88
+    {"ADC C", 4},        // 0x89
+    {"ADC D", 4},        // 0x8A
+    {"ADC E", 4},        // 0x8B
+    {"ADC H", 4},        // 0x8C
+    {"ADC L", 4},        // 0x8D
+    {"ADC M", 7},        // 0x8E
+    {"ADC A", 4},        // 0x8F
+
+    {"SUB B", 4},        // 0x90
+    {"SUB C", 4},        // 0x91
+    {"SUB D", 4},        // 0x92
+    {"SUB E", 4},        // 0x93
+    {"SUB H", 4},        // 0x94
+    {"SUB L", 4},        // 0x95
+    {"SUB M", 7},        // 0x96
+    {"SUB A", 4},        // 0x97
+    {"SBB B", 4},        // 0x98
+    {"SBB C", 4},        // 0x99
+    {"SBB D", 4},        // 0x9A
+    {"SBB E", 4},        // 0x9B
+    {"SBB H", 4},        // 0x9C
+    {"SBB L", 4},        // 0x9D
+    {"SBB M", 7},        // 0x9E
+    {"SBB A", 4},        // 0x9F
+
+    {"ANA B", 4},        // 0xA0
+    {"ANA C", 4},        // 0xA1
+    {"ANA D", 4},        // 0xA2
+    {"ANA E", 4},        // 0xA3
+    {"ANA H", 4},        // 0xA4
+    {"ANA L", 4},        // 0xA5
+    {"ANA M", 7},        // 0xA6
+    {"ANA A", 4},        // 0xA7
+    {"XRA B", 4},        // 0xA8
+    {"XRA C", 4},        // 0xA9
+    {"XRA D", 4},        // 0xAA
+    {"XRA E", 4},        // 0xAB
+    {"XRA H", 4},        // 0xAC
+    {"XRA L", 4},        // 0xAD
+    {"XRA M", 7},        // 0xAE
+    {"XRA A", 4},        // 0xAF
+
+    {"ORA B", 4},        // 0xB0
+    {"ORA C", 4},        // 0xB1
+    {"ORA D", 4},        // 0xB2
+    {"ORA E", 4},        // 0xB3
+    {"ORA H", 4},        // 0xB4
+    {"ORA L", 4},        // 0xB5
+    {"ORA M", 7},        // 0xB6
+    {"ORA A", 4},        // 0xB7
+    {"CMP B", 4},        // 0xB8
+    {"CMP C", 4},        // 0xB9
+    {"CMP D", 4},        // 0xBA
+    {"CMP E", 4},        // 0xBB
+    {"CMP H", 4},        // 0xBC
+    {"CMP L", 4},        // 0xBD
+    {"CMP M", 7},        // 0xBE
+    {"CMP A", 4},        // 0xBF
+
+    {"RNZ", 5},          // 0xC0
+    {"POP BC", 10},      // 0xC1
+    {"JNZ a16", 10},     // 0xC2
+    {"JMP a16", 10},     // 0xC3
+    {"CNZ a16", 11},     // 0xC4
+    {"PUSH BC", 11},     // 0xC5
+    {"ADI d8", 7},       // 0xC6
+    {"RST 0", 11},       // 0xC7
+    {"RZ", 5},           // 0xC8
+    {"RET", 10},         // 0xC9
+    {"JZ a16", 10},      // 0xCA
+    {"JMP a16", 10},     // 0xCB
+    {"CZ a16", 11},      // 0xCC
+    {"CALL a16", 11},    // 0xCD
+    {"ACI d8", 7},       // 0xCE
+    {"RST 1", 11},       // 0xCF
+
+    {"RNC", 5},          // 0xD0
+    {"POP DE", 10},      // 0xD1
+    {"JNC a16", 10},     // 0xD2
+    {"OUT d8", 10},      // 0xD3
+    {"CNC a16", 11},     // 0xD4
+    {"PUSH DE", 11},     // 0xD5
+    {"SUI d8", 7},       // 0xD6
+    {"RST 2", 11},       // 0xD7
+    {"RC", 5},           // 0xD8
+    {"RET", 10},         // 0xD9
+    {"JC a16", 10},      // 0xDA
+    {"IN d8", 10},       // 0xDB
+    {"CC a16", 11},      // 0xDC
+    {"CALL a16", 11},    // 0xDD
+    {"SBI d8", 7},       // 0xDE
+    {"RST 3", 11},       // 0xDF
+
+    {"RPO", 5},          // 0xE0
+    {"POP HL", 10},      // 0xE1
+    {"JPO a16", 10},     // 0xE2
+    {"XTHL", 18},        // 0xE3
+    {"CPO a16", 11},     // 0xE4
+    {"PUSH HL", 11},     // 0xE5
+    {"ANI d8", 7},       // 0xE6
+    {"RST 4", 11},       // 0xE7
+    {"RPE", 5},          // 0xE8
+    {"PCHL", 5},         // 0xE9
+    {"JPE a16", 10},     // 0xEA
+    {"XCHG", 5},         // 0xEB
+    {"CPE a16", 11},     // 0xEC
+    {"CALL a16", 11},    // 0xED
+    {"XRI d8", 7},       // 0xEE
+    {"RST 5", 11},       // 0xEF
+
+    {"RP", 5},           // 0xF0
+    {"POP PSW", 10},     // 0xF1
+    {"JP a16", 10},      // 0xF2
+    {"DI", 4},           // 0xF3
+    {"CP a16", 11},      // 0xF4
+    {"PUSH PSW", 11},    // 0xF5
+    {"ORI d8", 7},       // 0xF6
+    {"RST 6", 11},       // 0xF7
+    {"RM", 5},           // 0xF8
+    {"SPHL", 5},         // 0xF9
+    {"JM a16", 10},      // 0xFA
+    {"EI", 4},           // 0xFB
+    {"CM a16", 11},      // 0xFC
+    {"CALL a16", 11},    // 0xFD
+    {"CPI d8", 7},       // 0xFE
+    {"RST 7", 11},       // 0xFF
+}};
+
 CPU::CPU(Bus& bus) : bus(bus) {}
 
 // Returns a reference to register m which is an alias for the memory value at address HL
 u8& CPU::m() {
     return bus.getMemRef(hl.get());
+}
+
+void CPU::step() {
+    if ( cycleDelay == 0 ) {
+        u8 opcode = bus.memRead(pc);
+        pc++;
+
+        execute(opcode);
+
+        auto opcodeInfo = opcodeInfoTable[opcode];
+
+        cycleDelay = opcodeInfo.cycles;
+    };
+    cycleDelay--;
 }
 
 void CPU::pushToStack(u16 value) {
@@ -394,10 +682,7 @@ void CPU::di() {
     interruptsEnabled = false;
 }
 
-void CPU::execute() {
-    u8 opcode = bus.memRead(pc);
-    pc++;
-
+void CPU::execute(u8 opcode) {
     switch (opcode) {
         case 0x00: break;
         case 0x01: lxi(bc, Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
