@@ -658,12 +658,16 @@ void CPU::call(bool condition = true) {
     if (condition) {
         pushToStack(pc);
         pc = Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1));
+        cycleDelay += 6; // Opcode duration is extended on successful CALL
     }
 }
 
 // Pops PC from stack
 void CPU::ret(bool condition = true) {
-    if (condition) pc = popFromStack();
+    if (condition) {
+        pc = popFromStack();
+        cycleDelay += 5;  // Opcode duration is extended on successful RET
+    }
 }
 
 // Restarts
