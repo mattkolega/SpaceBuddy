@@ -586,12 +586,12 @@ void CPU::dad(u16 reg){
 }
 
 // Increments register pair
-void inx(RegisterPair& reg) {
+void CPU::inx(RegisterPair& reg) {
     reg.set(reg.get() + 1);
 }
 
 // Increments word
-void inx(u16& reg) {
+void CPU::inx(u16& reg) {
     reg++;
 }
 
