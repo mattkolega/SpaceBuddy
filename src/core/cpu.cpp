@@ -293,16 +293,36 @@ void CPU::step() {
     if (cycleDelay == 0) {
         if (isHalted) return;
 
-        u8 opcode = bus.memRead(pc);
-        pc++;
+        u8 opcode {};
+
+        if (midFrameInterrupt && interruptsEnabled) {
+            opcode = 0xCF;
+            midFrameInterrupt = false;
+            interruptsEnabled = false;
+        } else if (endFrameInterrupt && interruptsEnabled) {
+            opcode = 0xD7;
+            endFrameInterrupt = false;
+            interruptsEnabled = false;
+        } else {
+            opcode = bus.memRead(pc);
+            pc++;
+        }
 
         execute(opcode);
-
         auto opcodeInfo = opcodeInfoTable[opcode];
-
         cycleDelay = opcodeInfo.cycles;
     };
     cycleDelay--;
+}
+
+void CPU::triggerInterrupt(InterruptType interruptType) {
+    using enum InterruptType;
+
+    if (interruptType == MidFrame) {
+        midFrameInterrupt = true;
+    } else if (interruptType == EndFrame) {
+        endFrameInterrupt = true;
+    }
 }
 
 void CPU::pushToStack(u16 value) {

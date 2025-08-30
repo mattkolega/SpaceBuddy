@@ -15,6 +15,11 @@ enum class FlagBits : u8 {
     S = 7, // Sign
 };
 
+enum class InterruptType {
+    MidFrame,
+    EndFrame
+};
+
 class RegisterPair {
 public:
     u8 hi {};
@@ -39,6 +44,8 @@ public:
 
     // Executes a single opcode.
     void step();
+
+    void triggerInterrupt(InterruptType interruptType);
 private:
     Bus& bus;
 
@@ -62,8 +69,11 @@ private:
     u8& m();
 
     size_t cycleDelay { 0 };
-    bool interruptsEnabled { false };
+
     bool isHalted { false };
+    bool interruptsEnabled { false };
+    bool midFrameInterrupt { false };
+    bool endFrameInterrupt { false };
 
     void pushToStack(u16 value);
     u16 popFromStack();
