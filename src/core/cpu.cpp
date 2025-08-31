@@ -575,12 +575,12 @@ void CPU::push(RegisterPair reg) {
 
 // Pops register pair from stack
 void CPU::pop(RegisterPair &reg) {
-    reg = popFromStack();
+    reg.set(popFromStack());
 }
 
 // Adds register pair to HL
 void CPU::dad(u16 reg){
-    u8 originalValue = hl.get();
+    u16 originalValue = hl.get();
     hl.set(hl.get() + reg);
     setCarry((originalValue + reg) > 0xFFFF);
 }
@@ -651,12 +651,14 @@ void CPU::lda(u16 address) {
 
 // Stores HL in memory
 void CPU::shld(u16 address) {
-    bus.memWrite(address, hl.get());
+    bus.memWrite(address, hl.lo);
+    bus.memWrite(address+1, hl.hi);
 }
 
 // Loads HL from memory
 void CPU::lhld(u16 address) {
-    hl.set(bus.memRead(address));
+    hl.lo = bus.memRead(address);
+    hl.hi = bus.memRead(address+1);
 }
 
 // Jump instructions
@@ -763,7 +765,7 @@ void CPU::execute(u8 opcode) {
 
         case 0x20: break;
         case 0x21: lxi(hl, Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
-        case 0x22: shld(pc); pc++; break;
+        case 0x22: shld(Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
         case 0x23: inx(hl); break;
         case 0x24: inr(h); break;
         case 0x25: dcr(h); break;
@@ -771,7 +773,7 @@ void CPU::execute(u8 opcode) {
         case 0x27: daa(); break;
         case 0x28: break;
         case 0x29: dad(hl.get()); break;
-        case 0x2A: lhld(pc); pc++; break;
+        case 0x2A: lhld(Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
         case 0x2B: dcx(hl); break;
         case 0x2C: inr(l); break;
         case 0x2D: dcr(l); break;
@@ -780,7 +782,7 @@ void CPU::execute(u8 opcode) {
 
         case 0x30: break;
         case 0x31: lxi(sp, Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
-        case 0x32: sta(pc); pc++; break;
+        case 0x32: sta(Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
         case 0x33: inx(sp); break;
         case 0x34: inr(m()); break;
         case 0x35: dcr(m()); break;
@@ -788,7 +790,7 @@ void CPU::execute(u8 opcode) {
         case 0x37: stc(); break;
         case 0x38: break;
         case 0x39: dad(sp); break;
-        case 0x3A: lda(pc); pc++; break;
+        case 0x3A: lda(Bitwise::concatBytes(bus.memRead(pc), bus.memRead(pc+1))); pc+=2; break;
         case 0x3B: dcx(sp); break;
         case 0x3C: inr(a); break;
         case 0x3D: dcr(a); break;
