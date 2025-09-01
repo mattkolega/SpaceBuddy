@@ -1,10 +1,34 @@
 #include "mmu.h"
 
+#include <fstream>
+#include <stdexcept>
+
+#include <common/dialog.h>
 #include <common/logger.h>
 #include <common/types.h>
 
+void MMU::loadRom() {
+    auto filepath = Dialog::openFile("Open Space Invaders ROM File", {"*.rom"}, "Space Invaders ROM");
+    if (filepath.empty()) throw std::runtime_error("ROM file is empty");
+
+    std::ifstream romFile(filepath, std::ios::binary);
+    if (!romFile) throw std::runtime_error("Failed to open ROM file: " + filepath);
+
+    Logger::info("{} {}", "Loaded ROM: ", filepath);
+
+    romFile.seekg(0, std::ios::end);
+    auto fileSize = romFile.tellg();
+    romFile.seekg(0, std::ios::beg);
+
+    if (fileSize > 8192) throw std::runtime_error("ROM size is too big.");
+
+    if (!romFile.read(reinterpret_cast<char*>(rom.data()), fileSize)) {
+        throw std::runtime_error("Failed to read the ROM file.");
+    }
+}
+
 u8 MMU::read(u16 address) const {
-    if (address >= 0x0 && address <= 0x1FFF) {
+    if (address <= 0x1FFF) {
         return rom[address];
     } else if (address >= 0x2000 && address <= 0x23FF) {
         return ram[address];
@@ -19,7 +43,7 @@ u8 MMU::read(u16 address) const {
 }
 
 void MMU::write(u16 address, u8 value) {
-    if (address >= 0x0 && address <= 0x1FFF) {
+    if (address <= 0x1FFF) {
         Logger::warn("Illegal write to ROM at address: {:X}", address);
     } else if (address >= 0x2000 && address <= 0x23FF) {
         ram[address] = value;
@@ -33,7 +57,7 @@ void MMU::write(u16 address, u8 value) {
 }
 
 u8& MMU::getRef(u16 address) {
-    if (address >= 0x0 && address <= 0x1FFF) {
+    if (address <= 0x1FFF) {
         return rom[address];
     } else if (address >= 0x2000 && address <= 0x23FF) {
         return ram[address];
@@ -41,8 +65,9 @@ u8& MMU::getRef(u16 address) {
         return vram[address];
     } else if (address >= 0x4000 && address <= 0x43FF) {
         return ram[address];
+    } else {
+        throw std::runtime_error("Illegal reference to undefined memory address: " + std::to_string(address));
     }
-    // TODO: handle illegal reference
 }
 
 const std::array<u8, 1024 * 7>& MMU::getFrameBuffer() const {

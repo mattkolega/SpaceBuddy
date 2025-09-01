@@ -6,6 +6,7 @@
 
 class MMU {
 public:
+    void loadRom();
     u8 read(u16 address) const;
     void write(u16 address, u8 value);
     u8& getRef(u16 address);
