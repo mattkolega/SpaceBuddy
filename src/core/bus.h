@@ -9,7 +9,12 @@
 
 class Bus {
 public:
+    static constexpr size_t cyclesPerSecond { 2'000'000 };
+
     Bus();
+
+    void init();
+    void run();
 
     u8 memRead(u16 address) const;
     void memWrite(u16 address, u8 value);
@@ -18,6 +23,9 @@ public:
 
     u8 in(u8 portNum) const;
     void out(u8 portNum, u8 value);
+
+    void triggerMidFrameInterrupt();
+    void triggerEndFrameInterrupt();
 private:
     CPU cpu;
     MMU mmu;

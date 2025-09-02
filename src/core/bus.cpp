@@ -4,6 +4,14 @@
 
 Bus::Bus() : cpu(*this) {};
 
+void Bus::init() {
+    mmu.loadRom();
+}
+
+void Bus::run() {
+    cpu.step();
+}
+
 u8 Bus::memRead(u16 address) const {
     return mmu.read(address);
 }
@@ -51,4 +59,12 @@ void Bus::out(u8 portNum, u8 value) {
         default:
             break;
     }
+}
+
+void Bus::triggerMidFrameInterrupt() {
+    cpu.triggerInterrupt(InterruptType::MidFrame);
+}
+
+void Bus::triggerEndFrameInterrupt() {
+    cpu.triggerInterrupt(InterruptType::EndFrame);
 }
