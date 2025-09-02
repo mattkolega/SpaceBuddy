@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.31.6)
 
 project(
     SpaceBuddy
@@ -44,6 +44,7 @@ add_subdirectory(src/core)
 
 add_executable(spacebuddy
     src/main.cpp
+    src/application.cpp
 )
 
 target_link_libraries(spacebuddy
