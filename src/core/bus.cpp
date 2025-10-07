@@ -5,7 +5,8 @@
 Bus::Bus() : cpu(*this) {};
 
 void Bus::init() {
-    mmu.loadRom();
+    mmu = std::make_unique<RealMMU>();
+    mmu->loadRom();
 }
 
 void Bus::run() {
@@ -13,19 +14,19 @@ void Bus::run() {
 }
 
 u8 Bus::memRead(u16 address) const {
-    return mmu.read(address);
+    return mmu->read(address);
 }
 
 void Bus::memWrite(u16 address, u8 value) {
-    mmu.write(address, value);
+    mmu->write(address, value);
 }
 
 u8& Bus::getMemRef(u16 address) {
-    return mmu.getRef(address);
+    return mmu->getRef(address);
 }
 
-const std::array<u8, 1024 * 7>& Bus::getFrameBuffer() const {
-    return mmu.getFrameBuffer();
+std::span<const u8> Bus::getFrameBuffer() const {
+    return mmu->getFrameBuffer();
 };
 
 u8 Bus::in(u8 portNum) const {

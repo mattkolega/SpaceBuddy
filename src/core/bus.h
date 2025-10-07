@@ -1,6 +1,7 @@
 #pragma once
 
-#include <array>
+#include <memory>
+#include <span>
 
 #include <common/types.h>
 
@@ -19,7 +20,7 @@ public:
     u8 memRead(u16 address) const;
     void memWrite(u16 address, u8 value);
     u8& getMemRef(u16 address);
-    const std::array<u8, 1024 * 7>& getFrameBuffer() const;
+    std::span<const u8> getFrameBuffer() const;
 
     u8 in(u8 portNum) const;
     void out(u8 portNum, u8 value);
@@ -28,7 +29,7 @@ public:
     void triggerEndFrameInterrupt();
 private:
     CPU cpu;
-    MMU mmu;
+    std::unique_ptr<MMU> mmu;
 
     u8 port1 {}, port2 {}, port3 {}, port5 {};
 
