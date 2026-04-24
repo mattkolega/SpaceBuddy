@@ -1,6 +1,6 @@
 add_library(common STATIC
     bits.h
-    logger.h
+    log.h
     types.h
 )
 
