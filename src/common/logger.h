@@ -8,11 +8,12 @@
 #include <fmt/core.h>
 
 namespace Logger {
-    namespace {
+    namespace internal {
         // Get current system time as a string
-        std::string getCurrentTime() {
-            const auto currentTime = std::chrono::system_clock::now();
-            return fmt::format("{:%T}", fmt::localtime(std::chrono::system_clock::to_time_t(currentTime)));
+        inline std::string getCurrentTime() {
+            const auto nowUtc = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+            const auto t = std::chrono::system_clock::to_time_t(nowUtc);
+            return fmt::format("{:%T}", *std::localtime(&t));
         }
 
         template<typename... Args>
@@ -22,7 +23,7 @@ namespace Logger {
                 colour,
                 "[{}] ({}) - {}\n",
                 logTag,
-                Logger::getCurrentTime(),
+                getCurrentTime(),
                 fmt::format(formatString, std::forward<Args>(args)...)
             );
         }
@@ -31,25 +32,32 @@ namespace Logger {
     // Logs a message which is useful for debugging and isn't relevant to the user
     template<typename... Args>
     void debug(fmt::format_string<Args...> formatString, Args&&... args) {
-        Logger::print("DEBUG", fg(fmt::color::light_golden_rod_yellow), formatString, std::forward<Args>(args)...);
-    };
+        Logger::internal::print("DEBUG", fg(fmt::color::light_golden_rod_yellow), formatString, std::forward<Args>(args)...);
+    }
 
     // Logs a general message which informs the user about the state of the program
     template<typename... Args>
     void info(fmt::format_string<Args...> formatString, Args&&... args) {
-        Logger::print("INFO", fg(fmt::color::powder_blue), formatString, std::forward<Args>(args)...);
-    };
+        Logger::internal::print("INFO", fg(fmt::color::powder_blue), formatString, std::forward<Args>(args)...);
+    }
 
     // Logs a warning message which indicates that something may have gone wrong but isn't necessarily an error
     template<typename... Args>
     void warn(fmt::format_string<Args...> formatString, Args&&... args) {
-        Logger::print("WARN", fg(fmt::color::orange), formatString, std::forward<Args>(args)...);
-    };
+        Logger::internal::print("WARN", fg(fmt::color::orange), formatString, std::forward<Args>(args)...);
+    }
 
     // Logs an error message which indicates that something has gone wrong during program execution
     // May or may not lead to program exit
     template<typename... Args>
     void err(fmt::format_string<Args...> formatString, Args&&... args) {
-        Logger::print("ERROR", fg(fmt::color::red), formatString, std::forward<Args>(args)...);
-    };
+        Logger::internal::print("ERROR", fg(fmt::color::orange_red), formatString, std::forward<Args>(args)...);
+    }
+
+    // Logs an error message which indicates that something has gone massively wrong during program execution
+    // Should lead to program exit
+    template<typename... Args>
+    void fatal(fmt::format_string<Args...> formatString, Args&&... args) {
+        Logger::internal::print("FATAL", fg(fmt::color::crimson), formatString, std::forward<Args>(args)...);
+    }
 }

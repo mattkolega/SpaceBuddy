@@ -1,11 +1,10 @@
 #pragma once
 
-#include <bitset>
-#include <cstdint>
+#include <bit>
 
 #include "types.h"
 
-namespace Bitwise {
+namespace Bits {
     // Checks if half carry occurred in 8-bit addition
     inline bool checkHalfCarryAdd(u8 operand1, u8 operand2, u8 carry = 0) {
         return ((operand1 & 0xF) + (operand2 & 0xF) + (carry & 0b1)) > 0xF;
@@ -63,7 +62,6 @@ namespace Bitwise {
 
     // Checks parity of a byte. True if even, false if odd
     inline bool checkParity(u8 value) {
-        std::bitset<8> bits(value);
-        return bits.count() % 2 == 0;
+        return std::popcount(value) % 2 == 0;
     }
 }
