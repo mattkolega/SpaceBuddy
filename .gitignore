@@ -9,7 +9,9 @@ cmake-build-*
 .DS_Store
 
 # Build directories
-build/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
 
 # clangd directories
 .cache/
