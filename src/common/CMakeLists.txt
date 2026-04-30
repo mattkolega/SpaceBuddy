@@ -1,6 +1,7 @@
 add_library(common STATIC
     bits.h
     crc.h
+    fs.h
     log.h
     types.h
 )
