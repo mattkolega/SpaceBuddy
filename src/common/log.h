@@ -6,6 +6,7 @@
 #include <fmt/chrono.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <fmt/std.h>
 
 namespace log {
     namespace internal {
