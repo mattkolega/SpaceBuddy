@@ -2,12 +2,12 @@
 
 #include <string_view>
 
-#include <common/bitwise.h>
-#include <common/types.h>
+#include "common/types.h"
 
-class Bus;
+class MMU;
+class IOPorts;
 
-enum class FlagBits : u8 {
+enum class CPUFlags : u8 {
     C = 0, // Carry
     P = 2, // Parity
     A = 4, // Aux Carry
@@ -20,105 +20,98 @@ enum class InterruptType {
     EndFrame
 };
 
-class RegisterPair {
-public:
-    u8 hi {};
-    u8 lo {};
-
-    RegisterPair() = default;
-    RegisterPair(u16 value) : hi(value >> 8), lo(value & 0xFF) {};
-
-    u16 get() const;
-    void set(u16 value);
+union RegisterPair {
+    u16 full;
+    struct { u8 lo; u8 hi; };
 };
+
+enum class Reg8  { A, F, B, C, D, E, H, L, M };
+enum class Reg16 { AF, BC, DE, HL, SP };
 
 struct OpcodeInfo {
     std::string_view mnemonic;
     u8 cycles;
 };
 
+// Implementation of the Intel 8080
 class CPU {
 public:
-    CPU() = delete;
-    CPU(Bus& bus);
+    int cycleDelay {0};
+
+    CPU(MMU& mmu, IOPorts& ioPorts)
+        : m_mmu(mmu), m_ioPorts(ioPorts) {};
 
     // Executes a single opcode.
     void step();
 
     void triggerInterrupt(InterruptType interruptType);
+
 private:
-    Bus& bus;
+    MMU& m_mmu;
+    IOPorts& m_ioPorts;
 
-    RegisterPair psw {};
-    RegisterPair bc  {};
-    RegisterPair de  {};
-    RegisterPair hl  {};
+    RegisterPair m_af {};
+    RegisterPair m_bc {};
+    RegisterPair m_de {};
+    RegisterPair m_hl {};
+    u16          m_pc {};
+    u16          m_sp {};
 
-    u16 pc {};
-    u16 sp {};
+    bool m_isHalted          {false};
+    bool m_interruptsEnabled {false};
+    bool m_midFrameInterrupt {false};
+    bool m_endFrameInterrupt {false};
 
-    u8& a = psw.hi;
-    u8& f = psw.lo;
-    u8& b = bc.hi;
-    u8& c = bc.lo;
-    u8& d = de.hi;
-    u8& e = de.lo;
-    u8& h = hl.hi;
-    u8& l = hl.lo;
-
-    u8& m();
-
-    size_t cycleDelay { 0 };
-
-    bool isHalted { false };
-    bool interruptsEnabled { false };
-    bool midFrameInterrupt { false };
-    bool endFrameInterrupt { false };
+    u8 readReg8(Reg8 reg);
+    u16 readReg16(Reg16 reg);
+    void writeReg8(Reg8 reg, u8 value);
+    void writeReg16(Reg16 reg, u16 value);
 
     void pushToStack(u16 value);
     u16 popFromStack();
 
     u8 getCarry() const;
-    void setCarry(bool value);
     u8 getParity() const;
-    void setParity(bool value);
     u8 getAuxCarry() const;
-    void setAuxCarry(bool value);
     u8 getZero() const;
-    void setZero(bool value);
     u8 getSign() const;
+
+    void setCarry(bool value);
+    void setParity(bool value);
+    void setAuxCarry(bool value);
+    void setZero(bool value);
     void setSign(bool value);
 
     void execute(u8 opcode);
 
-    /* INSTRUCTIONS */
+    // - INSTRUCTIONS -
 
     // Carry bit instructions
     void cmc();
     void stc();
 
     // Single register instructions
-    void inr(u8& reg);
-    void dcr(u8& reg);
+    void inr(Reg8 reg);
+    void dcr(Reg8 reg);
     void cma();
     void daa();
 
     // Data transfer instructions
-    void mov(u8& dst, u8 src);
-    void stax(u16 reg);
-    void ldax(u16 reg);
+    void mov(Reg8 dst, u8 src);
+    void stax(Reg16 reg);
+    void ldax(Reg16 reg);
 
     // Arithmetic instructions
-    void add(u8 reg);
-    void adc(u8 reg);
-    void sub(u8 reg);
-    void sbb(u8 reg);
+    void add(u8 value);
+    void adc(u8 value);
+    void sub(u8 value);
+    void sbb(u8 value);
 
     // Logical instructions
-    void ana(u8 reg);
-    void xra(u8 reg);
-    void ora(u8 reg);
-    void cmp(u8 reg);
+    void ana(u8 value);
+    void xra(u8 value);
+    void ora(u8 value);
+    void cmp(u8 value);
 
     // Rotation instructions
     void rlc();
@@ -127,20 +120,17 @@ private:
     void rar();
 
     // Register pair instructions
-    void push(RegisterPair reg);
-    void pop(RegisterPair& reg);
-    void dad(u16 reg);
-    void inx(RegisterPair& reg);
-    void inx(u16& reg);
-    void dcx(RegisterPair& reg);
-    void dcx(u16& reg);
+    void push(Reg16 reg);
+    void pop(Reg16 reg);
+    void dad(Reg16 reg);
+    void inx(Reg16 reg);
+    void dcx(Reg16 reg);
     void xchg();
     void xthl();
     void sphl();
 
     // Immediate instructions
-    void lxi(RegisterPair& reg, u16 immediate);
-    void lxi(u16& reg, u16 immediate);
+    void lxi(Reg16 reg, u16 immediate);
 
     // Direct addressing instructions
     void sta(u16 address);

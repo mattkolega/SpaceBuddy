@@ -18,33 +18,29 @@ include(FetchContent)
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 11.2.0
+    GIT_TAG 12.1.0
 )
 # Get SDL3 for multimedia functionality
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.18
+    GIT_TAG release-3.4.4
 )
-# Get tinyfiledialogs for native dialogs
-FetchContent_Declare(
-    tinyfiledialogs
-    GIT_REPOSITORY https://git.code.sf.net/p/tinyfiledialogs/code
-    GIT_TAG master
-    GIT_SHALLOW 1
-)
-FetchContent_MakeAvailable(fmt SDL3 tinyfiledialogs)
 
-# tinyfiledialogs needs to be compiled before it can be used
-add_library(tinyfiledialogs_lib STATIC ${tinyfiledialogs_SOURCE_DIR}/tinyfiledialogs.c)
-target_include_directories(tinyfiledialogs_lib INTERFACE ${tinyfiledialogs_SOURCE_DIR})
+# Stop SDL from compiling tests
+set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(fmt SDL3)
 
 add_subdirectory(src/common)
 add_subdirectory(src/core)
 
 add_executable(spacebuddy
     src/main.cpp
-    src/application.cpp
+    src/app.cpp
+    src/platform.cpp
+    src/renderer.cpp
 )
 
 target_link_libraries(spacebuddy

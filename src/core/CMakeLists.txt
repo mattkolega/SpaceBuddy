@@ -1,7 +1,7 @@
 add_library(core STATIC
-    bus.cpp
     cpu.cpp
     mmu.cpp
+    spaceinvaders.cpp
 )
 
 target_link_libraries(core
