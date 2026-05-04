@@ -22,7 +22,7 @@ private:
         : m_platform(std::move(platform))
         , m_renderer(std::move(renderer)) {}
 
-    bool m_quit { false };
+    bool m_isRunning { true };
 
     void handleEvents();
 };

@@ -1,5 +1,8 @@
 #include "spaceinvaders.h"
 
+#include <utility>
+
+#include "common/bits.h"
 #include "common/fs.h"
 
 u8 ShiftRegister::read() const {
@@ -13,6 +16,17 @@ void ShiftRegister::writeOffset(u8 offset) {
 void ShiftRegister::writeValue(u8 value) {
     m_value >>= 8;
     m_value |= static_cast<u16>(value) << 8;
+}
+
+void IOPorts::handlePlayerInput(InputType inputType, bool pressed) {
+    u8 portNum = bits::getFirstNibble(std::to_underlying(inputType));
+    u8 bit     = bits::getSecondNibble(std::to_underlying(inputType));
+
+    if (portNum == 1) {
+        m_in1 = bits::modifyBitInByte(m_in1, bit, pressed ? 1 : 0);
+    } else if (portNum == 2) {
+        m_in2 = bits::modifyBitInByte(m_in2, bit, pressed ? 1 : 0);
+    }
 }
 
 u8 IOPorts::in(u8 portNum) const {
@@ -70,10 +84,10 @@ std::span<const u32, SpaceInvaders::FRAMEBUFFER_WIDTH * SpaceInvaders::FRAMEBUFF
 SpaceInvaders::getFramebuffer() {
     auto vram = m_mmu.getVram();
 
-    for (int x{0}; x < FRAMEBUFFER_WIDTH; x++) {       // columns
-        for (int y{0}; y < FRAMEBUFFER_HEIGHT; y++) {    // rows within column (8 pixels per byte, 32 bytes)
+    for (int x{0}; x < FRAMEBUFFER_WIDTH; x++) {
+        for (int y{0}; y < FRAMEBUFFER_HEIGHT; y++) {
             u16 addr = (x * 32) + (y / 8);
-            u8 bit  = y % 8;
+            u8 bit = y % 8;
             bool pixel = (vram[addr] >> bit) & 1;
 
             int screenX = x;
@@ -83,4 +97,8 @@ SpaceInvaders::getFramebuffer() {
     }
 
     return m_framebuffer;
+}
+
+void SpaceInvaders::handleInput(InputType inputType, bool pressed) {
+    m_ports.handlePlayerInput(inputType, pressed);
 }

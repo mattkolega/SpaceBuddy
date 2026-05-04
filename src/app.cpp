@@ -22,7 +22,7 @@ bool App::run(std::string_view romPath) {
     bool success = m_spaceInvaders.loadRom(romPath);
     if (!success) return false;
 
-    while (!m_quit) {
+    while (m_isRunning) {
         auto frameStart = std::chrono::steady_clock::now();
         static constexpr auto nsPerSec = std::chrono::nanoseconds(std::chrono::seconds(1));
         auto frameDeadline = frameStart + (nsPerSec / FPS);
@@ -47,15 +47,48 @@ void App::handleEvents() {
         switch (event.type) {
         case SDL_EVENT_KEY_DOWN:
             switch (event.key.scancode) {
-            case SDL_SCANCODE_ESCAPE:
-                m_quit = true;
+            case SDL_SCANCODE_Z:
+                m_spaceInvaders.handleInput(InputType::P1Fire, true);
+                break;
+            case SDL_SCANCODE_LEFT:
+                m_spaceInvaders.handleInput(InputType::P1Left, true);
+                break;
+            case SDL_SCANCODE_RIGHT:
+                m_spaceInvaders.handleInput(InputType::P1Right, true);
+                break;
+            case SDL_SCANCODE_I:
+                m_spaceInvaders.handleInput(InputType::Credit, true);
+                break;
+            case SDL_SCANCODE_RETURN:
+                m_spaceInvaders.handleInput(InputType::P1Start, true);
+                break;
+            default:
+                break;
+            }
+            break;
+        case SDL_EVENT_KEY_UP:
+            switch (event.key.scancode) {
+            case SDL_SCANCODE_Z:
+                m_spaceInvaders.handleInput(InputType::P1Fire, false);
+                break;
+            case SDL_SCANCODE_LEFT:
+                m_spaceInvaders.handleInput(InputType::P1Left, false);
+                break;
+            case SDL_SCANCODE_RIGHT:
+                m_spaceInvaders.handleInput(InputType::P1Right, false);
+                break;
+            case SDL_SCANCODE_I:
+                m_spaceInvaders.handleInput(InputType::Credit, false);
+                break;
+            case SDL_SCANCODE_RETURN:
+                m_spaceInvaders.handleInput(InputType::P1Start, false);
                 break;
             default:
                 break;
             }
             break;
         case SDL_EVENT_QUIT:
-            m_quit = true;
+            m_isRunning = false;
             break;
         }
 	}
