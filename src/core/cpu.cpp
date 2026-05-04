@@ -1,5 +1,7 @@
 #include "cpu.h"
 
+#include <utility>
+
 #include "common/bits.h"
 #include "common/types.h"
 
@@ -430,17 +432,17 @@ u16 CPU::popFromStack() {
     return bits::concatBytes(lo, hi);
 }
 
-u8 CPU::getCarry() const    { return bits::getBitInByte(m_af.lo, static_cast<u8>(CPUFlags::C)); }
-u8 CPU::getParity() const   { return bits::getBitInByte(m_af.lo, static_cast<u8>(CPUFlags::P)); }
-u8 CPU::getAuxCarry() const { return bits::getBitInByte(m_af.lo, static_cast<u8>(CPUFlags::A)); }
-u8 CPU::getZero() const     { return bits::getBitInByte(m_af.lo, static_cast<u8>(CPUFlags::Z)); }
-u8 CPU::getSign() const     { return bits::getBitInByte(m_af.lo, static_cast<u8>(CPUFlags::S)); }
+u8 CPU::getCarry() const    { return bits::getBitInByte(m_af.lo, std::to_underlying(CPUFlags::C)); }
+u8 CPU::getParity() const   { return bits::getBitInByte(m_af.lo, std::to_underlying(CPUFlags::P)); }
+u8 CPU::getAuxCarry() const { return bits::getBitInByte(m_af.lo, std::to_underlying(CPUFlags::A)); }
+u8 CPU::getZero() const     { return bits::getBitInByte(m_af.lo, std::to_underlying(CPUFlags::Z)); }
+u8 CPU::getSign() const     { return bits::getBitInByte(m_af.lo, std::to_underlying(CPUFlags::S)); }
 
-void CPU::setCarry(bool value)    { m_af.lo = bits::modifyBitInByte(m_af.lo, static_cast<u8>(CPUFlags::C), value); }
-void CPU::setParity(bool value)   { m_af.lo = bits::modifyBitInByte(m_af.lo, static_cast<u8>(CPUFlags::P), value); }
-void CPU::setAuxCarry(bool value) { m_af.lo = bits::modifyBitInByte(m_af.lo, static_cast<u8>(CPUFlags::A), value); }
-void CPU::setZero(bool value)     { m_af.lo = bits::modifyBitInByte(m_af.lo, static_cast<u8>(CPUFlags::Z), value); }
-void CPU::setSign(bool value)     { m_af.lo = bits::modifyBitInByte(m_af.lo, static_cast<u8>(CPUFlags::S), value); }
+void CPU::setCarry(bool value)    { m_af.lo = bits::modifyBitInByte(m_af.lo, std::to_underlying(CPUFlags::C), value); }
+void CPU::setParity(bool value)   { m_af.lo = bits::modifyBitInByte(m_af.lo, std::to_underlying(CPUFlags::P), value); }
+void CPU::setAuxCarry(bool value) { m_af.lo = bits::modifyBitInByte(m_af.lo, std::to_underlying(CPUFlags::A), value); }
+void CPU::setZero(bool value)     { m_af.lo = bits::modifyBitInByte(m_af.lo, std::to_underlying(CPUFlags::Z), value); }
+void CPU::setSign(bool value)     { m_af.lo = bits::modifyBitInByte(m_af.lo, std::to_underlying(CPUFlags::S), value); }
 
 /* INSTRUCTIONS */
 
