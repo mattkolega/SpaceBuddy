@@ -82,6 +82,10 @@ void SpaceInvaders::runFrame() {
 
 std::span<const u32, SpaceInvaders::FRAMEBUFFER_WIDTH * SpaceInvaders::FRAMEBUFFER_HEIGHT>
 SpaceInvaders::getFramebuffer() {
+    static constexpr u32 WHITE {0xFFFFFFFF};
+    static constexpr u32 RED   {0xFF0000FF};
+    static constexpr u32 GREEN {0x00FF00FF};
+
     auto vram = m_mmu.getVram();
 
     for (int x{0}; x < FRAMEBUFFER_WIDTH; x++) {
@@ -92,10 +96,17 @@ SpaceInvaders::getFramebuffer() {
 
             int screenX = x;
             int screenY = 255 - y;
-            m_framebuffer[screenY * 224 + screenX] = pixel ? 0xFFFFFFFF : 0x00000000;
+
+            u32 pixelColour {WHITE};
+            if (screenY > 31 && screenY < 64) {
+                pixelColour = RED;
+            } else if (screenY > 183 && screenY < 240) {
+                pixelColour = GREEN;
+            }
+
+            m_framebuffer[screenY * 224 + screenX] = pixel ? pixelColour : 0x00000000;
         }
     }
-
     return m_framebuffer;
 }
 
