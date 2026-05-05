@@ -497,21 +497,21 @@ void CPU::daa() {
 
     u8 accumulator = readReg8(Reg8::A);
 
-    if (getSign() == 0 && (accumulator & 0xF) > 0x9 || getAuxCarry() == 1) {
+    if ((accumulator & 0xF) > 0x9 || getAuxCarry() == 1) {
         offset |= 0x06;
         setAuxCarry(1);
     } else {
         setAuxCarry(0);
     }
 
-    if (getSign() == 0 && accumulator > 0x99 || getCarry() == 1) {
+    if (accumulator > 0x99 || getCarry() == 1) {
         offset |= 0x60;
         setCarry(1);
     } else {
         setCarry(0);
     }
 
-    (getSign() == 0) ? accumulator += offset : accumulator -= offset;
+    accumulator += offset;
 
     // Set flags
     setZero(accumulator == 0);
