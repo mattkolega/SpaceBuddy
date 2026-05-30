@@ -1,22 +1,21 @@
+# Build folders
+[Bb]uild/
+
+# Language server
+.cache/
+compile_commands.json
+
 # VSCode
-.vscode/*
+.vscode/
 
 # JetBrains
-.idea
-cmake-build-*
+.idea/
+cmake-build-*/
 
 # macOS
 .DS_Store
 
-# Build directories
-[Bb]uild/
-[Dd]ebug/
-[Rr]elease/
-
-# clangd directories
-.cache/
-
-# CTest directories
+# CTest folders
 Testing/
 
 # Prerequisites
@@ -51,3 +50,9 @@ Testing/
 *.exe
 *.out
 *.app
+
+# Assets
+assets/*
+!assets/sounds/
+assets/sounds/*
+!assets/sounds/.gitkeep
