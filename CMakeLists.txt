@@ -11,15 +11,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Help language server find compile_commands.json
-if(CMAKE_EXPORT_COMPILE_COMMANDS AND NOT CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    file(
-        CREATE_LINK
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-        ${CMAKE_SOURCE_DIR}/compile_commands.json
-        SYMBOLIC
-    )
-endif()
+include(cmake/ProjectConfig.cmake)
 
 include(FetchContent)
 # Get fmt library for formatting console output
@@ -33,7 +25,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.4.8
+    GIT_TAG release-3.4.10
     GIT_SHALLOW TRUE
 )
 # Get miniaudio for audio playback
@@ -62,18 +54,18 @@ add_executable(spacebuddy
 
 target_link_libraries(spacebuddy
     PRIVATE
+        project_sanitizers
+        project_warnings
         common
         core
         SDL3::SDL3
         miniaudio
 )
 
-target_compile_options(spacebuddy PRIVATE
-    # Compile with extra warnings
-    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct>
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
-
-    # Compile with warnings as errors if not debug
-    $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Werror>
-    $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:MSVC>>:/WX>
+# Copy assets to build dir
+add_custom_command(
+    TARGET spacebuddy POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:spacebuddy>/assets
 )

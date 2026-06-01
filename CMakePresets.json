@@ -20,6 +20,15 @@
       }
     },
     {
+      "name": "debug-sanitize",
+      "displayName": "Debug - Sanitize",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "SANITIZE": "ON"
+      }
+    },
+    {
       "name": "release",
       "displayName": "Release",
       "inherits": "base",
