@@ -13,7 +13,7 @@ namespace crc {
         constexpr std::array<u32, 256> generateCrc32Table() {
             std::array<u32, 256> table {};
             for (u32 i{0}; i < 256; i++) {
-                u32 crc {i};
+                u32 crc{i};
                 for (int j{0}; j < 8; j++) {
                     crc = (crc & 1) ? (0xEDB88320 ^ (crc >> 1)) : (crc >> 1);
                 }
@@ -26,7 +26,7 @@ namespace crc {
     }
 
     constexpr u32 crc32(std::span<const u8> data) {
-        u32 checksum {0xFFFFFFFF};
+        u32 checksum{0xFFFFFFFF};
 
         for (const u8 byte : data) {
             checksum = internal::crc32Table[static_cast<u8>(checksum) ^ byte] ^ (checksum >> 8);
