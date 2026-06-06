@@ -48,6 +48,7 @@ add_subdirectory(src/core)
 add_executable(spacebuddy
     src/main.cpp
     src/app.cpp
+    src/audio.cpp
     src/platform.cpp
     src/renderer.cpp
 )

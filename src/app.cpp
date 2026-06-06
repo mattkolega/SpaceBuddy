@@ -1,4 +1,5 @@
 #include "app.h"
+#include "audio.h"
 
 #include <chrono>
 #include <string_view>
@@ -6,7 +7,19 @@
 
 #include <SDL3/SDL.h>
 
-static constexpr int FPS {60};
+static constexpr int FPS{60};
+
+static std::array<Sound, AUDIOSAMPLE_COUNT> sounds {{
+    {3, 0, AudioSample::UfoRepeat,      PlaybackType::Loop,    false},
+    {3, 1, AudioSample::Shoot,          PlaybackType::Oneshot, false},
+    {3, 2, AudioSample::PlayerDeath,    PlaybackType::Oneshot, false},
+    {3, 3, AudioSample::InvaderKilled,  PlaybackType::Oneshot, false},
+    {5, 0, AudioSample::FleetMovement1, PlaybackType::Oneshot, false},
+    {5, 1, AudioSample::FleetMovement2, PlaybackType::Oneshot, false},
+    {5, 2, AudioSample::FleetMovement3, PlaybackType::Oneshot, false},
+    {5, 3, AudioSample::FleetMovement4, PlaybackType::Oneshot, false},
+    {5, 4, AudioSample::UfoHit,         PlaybackType::Oneshot, false}
+}};
 
 std::optional<App> App::create() {
     auto platform = Platform::create();
@@ -15,7 +28,12 @@ std::optional<App> App::create() {
     auto renderer = Renderer::create((*platform).getWindow(), SpaceInvaders::FRAMEBUFFER_WIDTH, SpaceInvaders::FRAMEBUFFER_HEIGHT);
     if (!renderer) return std::nullopt;
 
-    return App{std::move(*platform), std::move(*renderer)};
+    auto audioManager = AudioManager::create();
+    if (!audioManager) return std::nullopt;
+
+    audioManager->loadSamples();
+
+    return App{std::move(*platform), std::move(*renderer), std::move(*audioManager)};
 }
 
 bool App::run(std::string_view romPath) {
@@ -32,6 +50,8 @@ bool App::run(std::string_view romPath) {
         m_spaceInvaders.runFrame();
 
         m_renderer.drawPixelBuffer(m_spaceInvaders.getFramebuffer());
+
+        handleAudio();
 
         auto frameEnd = std::chrono::steady_clock::now();
         if (frameDeadline > frameEnd) std::this_thread::sleep_for(frameDeadline - frameEnd);
@@ -92,4 +112,24 @@ void App::handleEvents() {
             break;
         }
 	}
+}
+
+void App::handleAudio() {
+    for (auto& sound : sounds) {
+        bool currentBitState{m_spaceInvaders.getOutputBit(sound.port, sound.bit) != 0};
+
+        if (currentBitState == sound.previousBitState) continue;
+
+        if (sound.playbackType == PlaybackType::Loop) {
+            if (currentBitState == 1) {
+                m_audioManager.playLoop(sound.sample);
+            } else {
+                m_audioManager.stopLoop(sound.sample);
+            }
+        } else {
+            if (currentBitState == 1) m_audioManager.playOneshot(sound.sample);
+        }
+
+        sound.previousBitState = currentBitState;
+    }
 }

@@ -29,6 +29,19 @@ void IOPorts::handlePlayerInput(InputType inputType, bool pressed) {
     }
 }
 
+u8 IOPorts::getOutputBit(int port, int bit) {
+    u8 portValue{};
+    if ( port == 3) {
+        portValue = m_out3;
+    } else if (port == 5) {
+        portValue = m_out5;
+    } else {
+        portValue = 0;
+    }
+
+    return bits::getBitInByte(portValue, bit);
+}
+
 u8 IOPorts::in(u8 portNum) const {
     switch (portNum) {
     case 1:
@@ -112,4 +125,8 @@ SpaceInvaders::getFramebuffer() {
 
 void SpaceInvaders::handleInput(InputType inputType, bool pressed) {
     m_ports.handlePlayerInput(inputType, pressed);
+}
+
+u8 SpaceInvaders::getOutputBit(int port, int bit) {
+    return m_ports.getOutputBit(port, bit);
 }

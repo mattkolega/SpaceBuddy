@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <utility>
 
 #include "common/types.h"
 #include "cpu.h"
@@ -42,6 +43,7 @@ public:
     IOPorts(ShiftRegister& shiftRegister) : m_shiftRegister(shiftRegister) {}
 
     void handlePlayerInput(InputType input, bool pressed);
+    u8 getOutputBit(int port, int bit);
 
     // Used by CPU to read from input ports
     u8 in(u8 portNum) const;
@@ -80,6 +82,7 @@ public:
     std::span<const u32, FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT> getFramebuffer();
 
     void handleInput(InputType input, bool pressed);
+    u8 getOutputBit(int port, int bit);
 
 private:
     MMU           m_mmu;
