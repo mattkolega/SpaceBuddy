@@ -1,8 +1,13 @@
-add_library(common INTERFACE)
+add_library(common STATIC
+    fs.cpp
+)
 
 target_link_libraries(common
-    INTERFACE
+    PRIVATE
+        project_sanitizers
+        project_warnings
+    PUBLIC
         fmt::fmt
 )
 
-target_include_directories(common INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
