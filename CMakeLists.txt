@@ -4,7 +4,7 @@ project(
     SpaceBuddy
     VERSION 0.1.0
     DESCRIPTION "Space Invaders arcade emulator"
-    LANGUAGES CXX C
+    LANGUAGES CXX C OBJC
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -35,12 +35,19 @@ FetchContent_Declare(
     GIT_TAG 0.11.25
     GIT_SHALLOW TRUE
 )
+# Get NFD for file dialogs
+FetchContent_Declare(
+    nfd
+    GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+    GIT_TAG v1.3.0
+    GIT_SHALLOW TRUE
+)
 
 # Stop SDL from compiling tests
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(fmt SDL3 miniaudio)
+FetchContent_MakeAvailable(fmt SDL3 miniaudio nfd)
 
 add_subdirectory(src/common)
 add_subdirectory(src/core)
@@ -51,6 +58,7 @@ add_executable(spacebuddy
     src/audio.cpp
     src/platform.cpp
     src/renderer.cpp
+    src/window.cpp
 )
 
 target_link_libraries(spacebuddy
@@ -61,6 +69,7 @@ target_link_libraries(spacebuddy
         core
         SDL3::SDL3
         miniaudio
+        nfd
 )
 
 # Copy assets to build dir

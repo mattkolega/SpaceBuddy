@@ -1,5 +1,4 @@
 #include "app.h"
-#include "audio.h"
 
 #include <chrono>
 #include <string_view>
@@ -22,10 +21,10 @@ static std::array<Sound, AUDIOSAMPLE_COUNT> sounds {{
 }};
 
 std::optional<App> App::create() {
-    auto platform = Platform::create();
-    if (!platform) return std::nullopt;
+    auto window = Window::create();
+    if (!window) return std::nullopt;
 
-    auto renderer = Renderer::create((*platform).getWindow(), SpaceInvaders::FRAMEBUFFER_WIDTH, SpaceInvaders::FRAMEBUFFER_HEIGHT);
+    auto renderer = Renderer::create(window->handle, SpaceInvaders::FRAMEBUFFER_WIDTH, SpaceInvaders::FRAMEBUFFER_HEIGHT);
     if (!renderer) return std::nullopt;
 
     auto audioManager = AudioManager::create();

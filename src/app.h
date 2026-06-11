@@ -5,7 +5,7 @@
 
 #include "audio.h"
 #include "core/spaceinvaders.h"
-#include "platform.h"
+#include "window.h"
 #include "renderer.h"
 
 struct Sound {
@@ -23,12 +23,12 @@ public:
 
 private:
     SpaceInvaders m_spaceInvaders;
-    Platform      m_platform;
+    Window        m_window;
     Renderer      m_renderer;
     AudioManager  m_audioManager;
 
-    explicit App(Platform platform, Renderer renderer, AudioManager audioManager)
-        : m_platform(std::move(platform))
+    explicit App(Window window, Renderer renderer, AudioManager audioManager)
+        : m_window(std::move(window))
         , m_renderer(std::move(renderer))
         , m_audioManager(std::move(audioManager)) {}
 
