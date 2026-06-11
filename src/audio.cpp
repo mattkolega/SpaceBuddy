@@ -3,8 +3,8 @@
 #include <memory>
 #include <string_view>
 
-#include "common/fs.h"
 #include "common/log.h"
+#include "platform.h"
 
 static constexpr auto SOUND_FLAGS{MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION};
 
@@ -43,8 +43,15 @@ AudioManager::~AudioManager() {
 void AudioManager::loadSamples() {
     ma_result result;
 
+    auto basePath = platform::getBasePath();
+    if (!basePath) {
+        log::warn("Failed to find sounds folder.");
+    }
+
+    auto soundsPath = *basePath / "assets" / "sounds";
+
     for (usize i{0}; i < audioFilenames.size(); i++) {
-        auto filepath = fs::getExeDir() / "assets" / "sounds" / audioFilenames[i];
+        auto filepath = soundsPath / audioFilenames[i];
         result = ma_sound_init_from_file(m_engine.get(), filepath.c_str(), SOUND_FLAGS, NULL, NULL, m_sounds[i].get());
 
         if (result != MA_SUCCESS) {

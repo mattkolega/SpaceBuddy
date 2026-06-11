@@ -9,7 +9,4 @@
 namespace fs {
     // Opens a file in binary mode and loads its contents into a vector of bytes
     std::optional<std::vector<u8>> loadFileIntoBuffer(const std::filesystem::path& filepath);
-
-    // Gets full path to the dir containing the exe
-    std::filesystem::path getExeDir();
 }

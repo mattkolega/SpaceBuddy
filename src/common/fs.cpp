@@ -41,28 +41,3 @@ std::optional<std::vector<u8>> fs::loadFileIntoBuffer(const std::filesystem::pat
 
     return buffer;
 }
-
-std::filesystem::path fs::getExeDir() {
-    std::error_code ec;
-#ifdef _WIN32
-    wchar_t buf[MAX_PATH];
-    GetModuleFileNameW(nullptr, buf, MAX_PATH);
-
-    auto exePath = std::filesystem::canonical(buf, ec)
-    if (!ec) return exePath.parent_path();
-#elifdef __APPLE__
-    uint32_t size{0};
-    _NSGetExecutablePath(nullptr, &size);
-    std::string buf(size, '\0');
-    _NSGetExecutablePath(buf.data(), &size);
-
-    auto exePath = std::filesystem::canonical(buf, ec);
-    if (!ec) return exePath.parent_path();
-#elifdef __linux__
-    auto exePath = std::filesystem::canonical("/proc/self/exe", ec)
-    if (!ec) return exePath.parent_path();
-#else
-    log::warning("getExeDir: unsupported platform, returning empty path.")
-#endif
-    return "";
-}
