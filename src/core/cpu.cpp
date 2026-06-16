@@ -504,7 +504,7 @@ void CPU::daa() {
         setAuxCarry(0);
     }
 
-    if (accumulator > 0x99 || getCarry() == 1) {
+    if (accumulator + offset > 0x99 || getCarry() == 1) {
         offset |= 0x60;
         setCarry(1);
     } else {
