@@ -27,12 +27,17 @@ private:
     Renderer      m_renderer;
     AudioManager  m_audioManager;
 
+    u16 m_loadedHighscore{};
+
     explicit App(Window window, Renderer renderer, AudioManager audioManager)
         : m_window(std::move(window))
         , m_renderer(std::move(renderer))
         , m_audioManager(std::move(audioManager)) {}
 
     bool m_isRunning{true};
+
+    void saveHighScore();
+    void loadHighScore();
 
     void handleEvents();
     void handleAudio();

@@ -5,6 +5,9 @@
 #include "common/bits.h"
 #include "common/fs.h"
 
+static constexpr u16 HIGHSCORE_LSB_ADDRESS{0x20F4};
+static constexpr u16 HIGHSCORE_MSB_ADDRESS{0x20F5};
+
 u8 ShiftRegister::read() const {
     return static_cast<u8>((m_value << m_offset) >> 8);
 }
@@ -121,6 +124,21 @@ SpaceInvaders::getFramebuffer() {
         }
     }
     return m_framebuffer;
+}
+
+u16 SpaceInvaders::getHighScore() const {
+    u8 lo = m_mmu.read(HIGHSCORE_LSB_ADDRESS);
+    u8 hi = m_mmu.read(HIGHSCORE_MSB_ADDRESS);
+
+    return bits::concatBytes(lo, hi);
+}
+
+void SpaceInvaders::setHighScore(u16 value) {
+    u8 lo = value & 0xFF;
+    u8 hi = (value >> 8) & 0xFF;
+
+    m_mmu.write(HIGHSCORE_LSB_ADDRESS, lo);
+    m_mmu.write(HIGHSCORE_MSB_ADDRESS, hi);
 }
 
 void SpaceInvaders::handleInput(InputType inputType, bool pressed) {

@@ -1,10 +1,15 @@
 #include "app.h"
 
+#include <cerrno>
 #include <chrono>
+#include <limits>
 #include <string_view>
 #include <thread>
 
 #include <SDL3/SDL.h>
+
+#include "common/log.h"
+#include "platform.h"
 
 static constexpr int FPS{60};
 
@@ -32,12 +37,14 @@ std::optional<App> App::create() {
 
     audioManager->loadSamples();
 
-    return App{std::move(*platform), std::move(*renderer), std::move(*audioManager)};
+    return App{std::move(*window), std::move(*renderer), std::move(*audioManager)};
 }
 
 bool App::run(std::string_view romPath) {
     bool success = m_spaceInvaders.loadRom(romPath);
     if (!success) return false;
+
+    loadHighScore();
 
     while (m_isRunning) {
         auto frameStart = std::chrono::steady_clock::now();
@@ -48,6 +55,11 @@ bool App::run(std::string_view romPath) {
 
         m_spaceInvaders.runFrame();
 
+        // The Space Invaders ROM zeroes out highscore memory on init, so we need to override it with this check
+        if (m_loadedHighscore > m_spaceInvaders.getHighScore()) {
+            m_spaceInvaders.setHighScore(m_loadedHighscore);
+        }
+
         m_renderer.drawPixelBuffer(m_spaceInvaders.getFramebuffer());
 
         handleAudio();
@@ -56,7 +68,70 @@ bool App::run(std::string_view romPath) {
         if (frameDeadline > frameEnd) std::this_thread::sleep_for(frameDeadline - frameEnd);
     }
 
+    saveHighScore();
+
     return true;
+}
+
+void App::saveHighScore() {
+    auto dataDir = platform::getDataPath();
+    if (!dataDir) {
+        log::err("Failed to get path to data dir.");
+        return;
+    }
+
+    auto highScoreFilePath = *dataDir / "highscore.txt";
+
+    u16 highscore = m_spaceInvaders.getHighScore();
+
+    // Clear errno so we don't use stale value
+    errno = 0;
+
+    std::ofstream out{highScoreFilePath, std::ios::trunc};
+    if (!out) {
+        int err = errno;
+        log::err("Failed to open file: `{}` Error: {}", highScoreFilePath, std::strerror(err));
+        return;
+    }
+
+    out << highscore << '\n';
+}
+
+void App::loadHighScore() {
+    auto dataDir = platform::getDataPath();
+    if (!dataDir) {
+        log::err("Failed to get path to data dir.");
+        return;
+    }
+
+    auto highScoreFilePath = *dataDir / "highscore.txt";
+
+    // Clear errno so we don't use stale value
+    errno = 0;
+
+    std::ifstream file{highScoreFilePath};
+    if (!file) {
+        int err = errno;
+        if (err == ENOENT) {
+            log::info("Skipping highscore loading. highscore.txt doesn't exist.");
+        } else {
+            log::err("Failed to open file: `{}` Error: {}", highScoreFilePath, std::strerror(err));
+        }
+        return;
+    }
+
+    i64 number{};
+    if (!(file >> number)) {
+        log::err("Failed to load highscore value from file.");
+        return;
+    }
+
+    if (number < 0 || number > std::numeric_limits<u16>::max()) {
+        log::err("Failed to load highscore value. Please ensure it's a positive number and no bigger than {}.", std::numeric_limits<u16>::max());
+        return;
+    }
+
+    m_loadedHighscore = static_cast<u16>(number);
 }
 
 void App::handleEvents() {

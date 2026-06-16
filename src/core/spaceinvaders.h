@@ -81,6 +81,9 @@ public:
 
     std::span<const u32, FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT> getFramebuffer();
 
+    u16 getHighScore() const;
+    void setHighScore(u16 value);
+
     void handleInput(InputType input, bool pressed);
     u8 getOutputBit(int port, int bit);
 
