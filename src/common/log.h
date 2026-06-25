@@ -49,15 +49,15 @@ namespace log {
         log::internal::print("WARN", fg(fmt::color::orange), formatString, std::forward<Args>(args)...);
     }
 
-    // Logs an error message which indicates that something has gone wrong during program execution
-    // May or may not lead to program exit
+    // Logs an error message which indicates that something has gone wrong during program execution.
+    // May or may not lead to program exit.
     template<typename... Args>
     void err(fmt::format_string<Args...> formatString, Args&&... args) {
         log::internal::print("ERROR", fg(fmt::color::orange_red), formatString, std::forward<Args>(args)...);
     }
 
-    // Logs an error message which indicates that something has gone massively wrong during program execution
-    // Should lead to program exit
+    // Logs an error message which indicates that something has gone massively wrong during program execution.
+    // Should lead to program exit.
     template<typename... Args>
     void fatal(fmt::format_string<Args...> formatString, Args&&... args) {
         log::internal::print("FATAL", fg(fmt::color::crimson), formatString, std::forward<Args>(args)...);
