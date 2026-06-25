@@ -24,7 +24,7 @@ std::optional<AudioManager> AudioManager::create() {
     ma_result result;
     auto engine = std::make_unique<ma_engine>();
 
-    result = ma_engine_init(NULL, engine.get());
+    result = ma_engine_init(nullptr, engine.get());
     if (result != MA_SUCCESS) {
         return std::nullopt;
     }
@@ -52,7 +52,7 @@ void AudioManager::loadSamples() {
 
     for (usize i{0}; i < audioFilenames.size(); i++) {
         auto filepath = soundsPath / audioFilenames[i];
-        result = ma_sound_init_from_file(m_engine.get(), filepath.c_str(), SOUND_FLAGS, NULL, NULL, m_sounds[i].get());
+        result = ma_sound_init_from_file(m_engine.get(), filepath.c_str(), SOUND_FLAGS, nullptr, nullptr, m_sounds[i].get());
 
         if (result != MA_SUCCESS) {
             log::warn("Failed to load audio file: {}", filepath);
